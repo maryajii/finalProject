@@ -1,0 +1,12 @@
+pandas
+numpy
+scikit-learn
+python-dotenv
+google-api-python-client
+youtube-search-python
+pyyaml
+flask
+flask>=2.0.0
+pandas>=1.0.0
+scikit-learn>=0.24.0
+joblib>=1.0.0

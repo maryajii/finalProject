@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SereneTunes - Mood-Based Music Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Ambience</h1>
+            <p class="tagline">Discover music that matches your mood</p>
+        </div>
+    </header>
+    
+    <div class="main-content">
+        <div class="container">
+            <div class="control-panel">
+                <div class="form-group">
+                    <label for="mood-select">Select Your Mood</label>
+                    <select id="mood-select">
+                        <option value="Calm">Calm</option>
+                        <option value="Happy">Happy</option>
+                        <option value="Sad">Sad</option>
+                        <option value="Energetic">Energetic</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cultural-factor">Cultural Adjustment: <span id="cultural-value">1.0</span></label>
+                    <input type="range" id="cultural-factor" min="0.5" max="2" step="0.1" value="1.0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="song-count">Number of Songs: <span id="count-value">10</span></label>
+                    <input type="range" id="song-count" min="1" max="20" value="10">
+                </div>
+                
+                <button id="generate-btn">Generate Playlist</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Creating your perfect playlist...</p>
+            </div>
+            
+            <div class="playlist-container" id="playlist-container" style="display: none;">
+                <div class="playlist-header">
+                    <h2 class="playlist-title" id="playlist-title">Your Playlist</h2>
+                </div>
+                <ul class="song-list" id="song-list"></ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>© 2025 Ambience | Music for every mood</p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            //update cultural factor display
+            const culturalFactor = document.getElementById('cultural-factor');
+            const culturalValue = document.getElementById('cultural-value');
+            
+            culturalFactor.addEventListener('input', function() {
+                culturalValue.textContent = this.value;
+            });
+            
+            //update song count display
+            const songCount = document.getElementById('song-count');
+            const countValue = document.getElementById('count-value');
+            
+            songCount.addEventListener('input', function() {
+                countValue.textContent = this.value;
+            });
+            
+            //playlist button
+            const generateBtn = document.getElementById('generate-btn');
+            generateBtn.addEventListener('click', generatePlaylist);
+            
+            function generatePlaylist() {
+                const mood = document.getElementById('mood-select').value;
+                const culturalFactorValue = culturalFactor.value;
+                const songCountValue = songCount.value;
+                
+                //loading spinner
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('playlist-container').style.display = 'none';
+                
+                //send request to server
+                fetch('/generate_playlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        mood: mood,
+                        cultural_factor: culturalFactorValue,
+                        count: songCountValue
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    //loading spinner
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    if (data.status === 'success') {
+                        displayPlaylist(mood, data.playlist);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('loading').style.display = 'none';
+                    alert('An error occurred: ' + error);
+                });
+            }
+            
+            function displayPlaylist(mood, playlist) {
+                const playlistTitle = document.getElementById('playlist-title');
+                const songList = document.getElementById('song-list');
+                
+                //update
+                playlistTitle.textContent = `${mood} Playlist`;
+                
+                //clear previous songs
+                songList.innerHTML = '';
+                
+                //addnew songs
+                playlist.forEach((song, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'song-item';
+                    
+                    li.innerHTML = `
+                        <div class="song-info">
+                            <div class="song-name">${index + 1}. ${song.name}</div>
+                            <div class="song-artist">${song.artist}</div>
+                        </div>
+                        <a href="${song.url}" target="_blank" class="play-button">▶</a>
+                    `;
+                    
+                    songList.appendChild(li);
+                });
+                
+                //playlist container
+                document.getElementById('playlist-container').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
