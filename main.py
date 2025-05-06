@@ -1,11 +1,10 @@
-# app.py
 from flask import Flask, render_template, request, jsonify
 from app import musicgenerator
 import os
 
 app = Flask(__name__)
 
-# Initialize the music generator
+#initialize the music generator
 generator = musicgenerator('data/data_moods.csv')
 
 @app.route('/')
